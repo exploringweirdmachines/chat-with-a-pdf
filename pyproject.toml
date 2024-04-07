@@ -12,7 +12,7 @@ llama-cpp-python = "0.2.56"
 torch = {url = "https://download.pytorch.org/whl/cu118/torch-2.1.0%2Bcu118-cp310-cp310-linux_x86_64.whl"}
 pypdf = "^4.1.0"
 faiss-gpu = "^1.7.2"
-farm-haystack = {extras = ["sql"], version = "^1.25.2"}
+farm-haystack = {extras = ["inference", "preprocessing", "sql"], version = "^1.25.2"}
 colorlog = "^6.8.2"
 python-box = "^7.1.1"
 

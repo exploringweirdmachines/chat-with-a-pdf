@@ -1,1 +1,17 @@
 version: "0.1"
+
+
+# model card
+llm:
+  model: "neuralhermes-2.5-mistral-7b.Q8_0.gguf"
+  context: 512
+  threads: 4
+  gpu_layers: 12
+  temperature: 0.1
+  stream: True
+
+retriever:
+  embedding_model: "llmrails/ember-v1"
+  model_format: 'sentence_transformers'
+  use_gpu: False
+  top_k: 3

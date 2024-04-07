@@ -1,0 +1,70 @@
+version: 1
+disable_existing_loggers: false
+formatters:
+  custom_colored:
+    '()': 'colorlog.ColoredFormatter'
+    secondary_log_colors:
+      message:
+        WARNING: yellow
+        CRITICAL: bold_red
+        ERROR: red
+      date:
+        WARNING: yellow
+        CRITICAL: red
+        ERROR: bold_red
+    format: '%(date_log_color)s%(asctime)s%(reset)s - [%(fg_red)s%(module)s%(reset)s] - {%(fg_purple)s%(threadName)s%(reset)s} - [%(fg_blue)s%(name)s%(reset)s] - %(log_color)s%(levelname)s%(reset)s - %(message_log_color)s%(message)s%(reset)s'
+    datefmt: '%Y-%m-%dT%H:%M:%S%z'
+  simple:
+    format: '[%(levelname)s|%(module)s|L%(lineno)d] %(asctime)s: %(message)s'
+    datefmt: '%Y-%m-%dT%H:%M:%S%z'
+  json:
+    (): formatter.CustomJSONFormatter
+    fmt_keys:
+      level: levelname
+      message: message
+      timestamp: timestamp
+      logger: name
+      module: module
+      function: funcName
+      line: lineno
+      thread_name: threadName
+handlers:
+  stdout:
+    class: logging.StreamHandler
+    level: WARNING
+    formatter: custom_colored
+    stream: ext://sys.stdout
+  stderr:
+    class: logging.StreamHandler
+    level: WARNING
+    formatter: custom_colored
+    stream: ext://sys.stderr
+  file_json:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: json
+    filename: logs/log.jsonl
+    maxBytes: 10000
+    backupCount: 3
+  queue_handler:
+    class: logging.handlers.QueueHandler
+    handlers:
+    - stdout
+    - stderr
+    - file_json
+    respect_handler_level: true
+loggers:
+  root:
+    level: DEBUG
+    handlers:
+    - queue_handler
+
+  PIL:
+    level: DEBUG
+    handlers:
+      - queue_handler
+
+  transformers:
+    level: ERROR
+    handlers:
+      - queue_handler

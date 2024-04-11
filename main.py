@@ -86,7 +86,7 @@ def page_chunker(doc: Document) -> List[Document]:
     # Process the documents with the PreProcessor
     preprocessed_docs = preprocessor.process([doc])
     logger.debug(f"Completed preprocessing/chunking document with page number: {get_page_number}.")
-    logger.debug(f"Number of chunked documents is: {len(preprocessed_docs)}.")
+    logger.debug(f"Page was chunked into {len(preprocessed_docs)} part(s).")
     return preprocessed_docs
 
 
@@ -103,34 +103,7 @@ def get_retriever(document_store):
     return retriever
 
 
-# def chatter(prompt):
-#     model = Path.home() / "models" / config.llm.model
-#     llm = Llama(
-#         model_path=str(model),
-#         n_ctx=config.llm.context,
-#         n_threads=config.llm.threads,
-#         n_gpu_layers=config.llm.gpu_layers,
-#         temperature=config.llm.temperature,
-#         stream=config.llm.stream
-#     )
-#
-#     prompt_input = f"""
-#     {prompt}
-#     """
-#
-#     prompt_setup = f"""
-#     <|im_start|>system
-#     You are an assistant. You are here to help<|im_end|>
-#     <|im_start|>user
-#     {prompt_input}<|im_end|>
-#     <|im_start|>assistant
-#     """
-#     llm.reset()
-#     result = llm(prompt=prompt_setup, max_tokens=128, stream=True)
-#
-#     for chunk in result:
-#         print(chunk['choices'][0]['text'], end='')
-#
+
 #
 # def question_answer():
 #     from transformers import pipeline
@@ -226,6 +199,7 @@ def pipeline(pdf_path, prompt):
     retrieved_pages = retriever.retrieve(query=f"{prompt}", document_store=document_store, scale_score=False)
 
     feed_prompt = []
+    logger.debug(f"Retriver model: {config.retriever.embedding_model}. Response of this model based on prompt: {retrieved_pages}")
     for result in retrieved_pages:
         logger.debug(f"Score: {round(result.score * 100, 2)}%; File: {result.meta['filename']}, Page: {result.meta['page']}")
         feed_prompt.append({"result_found": result.content, "filename": result.meta['filename'], "page_number": result.meta['page']})
@@ -238,7 +212,8 @@ def pipeline(pdf_path, prompt):
         n_threads=config.llm.threads,
         n_gpu_layers=config.llm.gpu_layers,
         temperature=config.llm.temperature,
-        stream=config.llm.stream
+        stream=config.llm.stream,
+        verbose=config.llm.verbose
     )
 
     prompt_input = f"""
@@ -247,15 +222,17 @@ def pipeline(pdf_path, prompt):
 
     prompt_setup = f"""
     <|im_start|>system
-    You are a PDF Reader assistant. You will respond to the user prompt with useful information. You are informed about what to answer based on the following context out of the json context: {feed_prompt}<|im_end|>
+    You are a PDF Reader assistant. You will respond to the user prompt with useful information. You pay attention on exactly what the user wants. You are informed about what to answer based on the following context: {feed_prompt}<|im_end|>
     <|im_start|>user
     {prompt_input}<|im_end|>
     <|im_start|>assistant
     """
 
     llm.reset()
-    result = llm(prompt=prompt_setup, max_tokens=128) #, stream=True)
+    result = llm(prompt=prompt_setup, max_tokens=config.infer.max_tokens) #, stream=True)
     logger.debug(f"LLM Output: {result['choices'][0]['text']}")
+    logger.debug(f"Finish reason: {result['choices'][0]['finish_reason']}")
+    logger.debug(f"Prompt number of tokens: {result['usage']['prompt_tokens']}; Completion tokens': {result['usage']['completion_tokens']}; Total tokens: {result['usage']['total_tokens']}")
 
     return result['choices'][0]['text']
 

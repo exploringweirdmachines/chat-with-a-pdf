@@ -31,7 +31,7 @@ formatters:
 handlers:
   stdout:
     class: logging.StreamHandler
-    level: DEBUG
+    level: WARNING
     formatter: custom_colored
     stream: ext://sys.stdout
   stderr:
@@ -64,17 +64,27 @@ loggers:
     handlers:
       - queue_handler
 
+  sentence_transformers:
+    level: DEBUG
+    handlers:
+      - queue_handler
+
   transformers:
-    level: WARNING
+    level: DEBUG
     handlers:
       - queue_handler
 
   llama_cpp:
-    level: WARNING
+    level: DEBUG
     handlers:
       - queue_handler
 
   faiss:
+    level: DEBUG
+    handlers:
+      - queue_handler
+
+  haystack:
     level: DEBUG
     handlers:
       - queue_handler
